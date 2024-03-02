@@ -1,8 +1,7 @@
-FROM node:18.12.0-slim
+FROM node:18.17.0-slim
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# SETUP DO PUPPETEER
 RUN apt update -y && apt install -y ca-certificates \
   fonts-liberation \
   libasound2 \
@@ -39,15 +38,21 @@ RUN apt update -y && apt install -y ca-certificates \
   lsb-release \
   wget \
   xdg-utils
-
 ENV TZ=America/Sao_Paulo
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-COPY package*.json ./
+COPY . .
+
+RUN mkdir -p tmp
+RUN mkdir -p pdf
+RUN mkdir -p html
 
 RUN npm install
 
-COPY . .
+RUN npx puppeteer browsers install chrome
+
+RUN npm run build
+
 
 CMD ["npm", "start"]
