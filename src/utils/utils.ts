@@ -23,7 +23,7 @@ export function generateHtmlFile(html: string) {
   return filename;
 }
 
-export async function generatePdf(htmlFilename: string) {
+export async function generatePdfFromHtmlFile(htmlFilename: string) {
   const filePath = path.join(process.cwd(), "html", htmlFilename);
   try {
     const browser = await puppeteer.launch({
@@ -37,6 +37,37 @@ export async function generatePdf(htmlFilename: string) {
     const page = await browser.newPage();
     const html = fs.readFileSync(filePath, { encoding: "utf-8" });
     await page.setContent(html);
+
+    const pdfFilename = randomUUID() + ".pdf";
+    const pdfPath = path.resolve(PDF_FOLDER, pdfFilename);
+
+    if (!fs.existsSync(path.resolve(PDF_FOLDER)))
+      fs.mkdirSync(path.resolve(PDF_FOLDER));
+
+    await page.pdf({ path: pdfPath });
+
+    await browser.close();
+
+    return pdfPath;
+  } catch (err: any) {
+    console.log(err);
+
+    throw new Error("[generatePDF]> Houve um erro ao gerar o PDF");
+  }
+}
+
+export async function generatePdfFromSite(siteUrl: string) {
+  try {
+    const browser = await puppeteer.launch({
+      headless: ENVIRONMENT === "dev" ? false : "new",
+      args:
+        ENVIRONMENT === "dev"
+          ? []
+          : ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
+    const page = await browser.newPage();
+    await page.goto(siteUrl);
 
     const pdfFilename = randomUUID() + ".pdf";
     const pdfPath = path.resolve(PDF_FOLDER, pdfFilename);
