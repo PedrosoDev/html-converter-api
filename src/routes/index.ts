@@ -14,13 +14,14 @@ routes.get("/html-to-pdf", async (req, res) => {
   try {
     const bodySchema = z.object({
       html: z.string(),
+      options: z.any().optional(),
     });
 
-    const { html } = bodySchema.parse(req.body);
+    const { html, options } = bodySchema.parse(req.body);
 
     const htmlFilename = generateHtmlFile(html);
     const htmlPath = path.resolve(process.cwd(), "html", htmlFilename);
-    const pdfPath = await generatePdfFromHtmlFile(htmlFilename);
+    const pdfPath = await generatePdfFromHtmlFile(htmlFilename, options);
 
     res.contentType("application/pdf");
     res.download(pdfPath, (err) => {

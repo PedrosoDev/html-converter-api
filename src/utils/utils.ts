@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import puppeteer from "puppeteer";
+import puppeteer, { PDFOptions } from "puppeteer";
 import { env } from "../env";
 
 const { ENVIRONMENT } = env;
@@ -23,7 +23,10 @@ export function generateHtmlFile(html: string) {
   return filename;
 }
 
-export async function generatePdfFromHtmlFile(htmlFilename: string) {
+export async function generatePdfFromHtmlFile(
+  htmlFilename: string,
+  options?: Omit<PDFOptions, "path">
+) {
   const filePath = path.join(process.cwd(), "html", htmlFilename);
   try {
     const browser = await puppeteer.launch({
@@ -44,7 +47,7 @@ export async function generatePdfFromHtmlFile(htmlFilename: string) {
     if (!fs.existsSync(path.resolve(PDF_FOLDER)))
       fs.mkdirSync(path.resolve(PDF_FOLDER));
 
-    await page.pdf({ path: pdfPath });
+    await page.pdf({ path: pdfPath, ...options });
 
     await browser.close();
 
